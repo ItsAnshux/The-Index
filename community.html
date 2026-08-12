@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Whispers — The Index</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="wrap">
+    <a href="index.html" class="brand"><span class="mark">Ⅰ</span> The Index</a>
+    <div class="navlinks">
+      <a href="index.html">Directory</a>
+      <a href="submit.html">Submit</a>
+      <a href="community.html" class="active">Whispers</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">No sign-up required</div>
+    <h1>Pin a note to the board.</h1>
+    <p class="lead">Yeh browser hi tumhari pehchaan hai — koi account nahi banana. Jo likhoge, sabko dikhega.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="composer">
+    <textarea id="whisperText" maxlength="280" placeholder="Kuch likho…"></textarea>
+    <div class="composer-foot">
+      <span class="char-count" id="charCount">280 left</span>
+      <button class="btn" id="postBtn">Pin note</button>
+    </div>
+    <div class="status-msg" id="statusMsg"></div>
+  </div>
+
+  <div class="section-label" id="patronLabel"></div>
+
+  <div class="whisper-feed" id="feed">
+    <div class="empty">Loading whispers…</div>
+  </div>
+</div>
+
+<footer>
+  Kept by patrons, stamped by the Archivist. &nbsp;·&nbsp; <a href="index.html">Browse the ledger</a>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/app.js"></script>
+<script>
+const browserId = getBrowserId();
+const patronName = getPatronName(browserId);
+document.getElementById("patronLabel").textContent = `Posting as ${patronName}`;
+
+const textarea = document.getElementById("whisperText");
+const charCount = document.getElementById("charCount");
+textarea.addEventListener("input", () => {
+  charCount.textContent = `${280 - textarea.value.length} left`;
+});
+
+async function loadFeed() {
+  const { data, error } = await supabaseClient
+    .from("whispers")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  const feed = document.getElementById("feed");
+  if (error) {
+    feed.innerHTML = `<div class="empty">Whispers load nahi hue. Config check karo.</div>`;
+    console.error(error);
+    return;
+  }
+  if (!data || data.length === 0) {
+    feed.innerHTML = `<div class="empty">Abhi tak koi note nahi. Pehla tum likho.</div>`;
+    return;
+  }
+  feed.innerHTML = data.map(w => `
+    <div class="whisper">
+      <div class="whisper-meta">
+        <span>${escapeHtml(w.patron_name)}</span>
+        <span class="time">${timeAgo(w.created_at)}</span>
+      </div>
+      <div class="whisper-content">${escapeHtml(w.content)}</div>
+    </div>
+  `).join("");
+}
+
+document.getElementById("postBtn").addEventListener("click", async () => {
+  const content = textarea.value.trim();
+  const msg = document.getElementById("statusMsg");
+  if (!content) return;
+
+  const btn = document.getElementById("postBtn");
+  btn.disabled = true;
+
+  const { error } = await supabaseClient.from("whispers").insert({
+    content,
+    patron_name: patronName,
+    browser_id: browserId
+  });
+
+  msg.classList.add("show");
+  if (error) {
+    msg.classList.remove("ok"); msg.classList.add("err");
+    msg.textContent = "Post nahi ho paya — dobara try karo.";
+    console.error(error);
+  } else {
+    msg.classList.remove("err"); msg.classList.add("ok");
+    msg.textContent = "Pinned!";
+    textarea.value = "";
+    charCount.textContent = "280 left";
+    await loadFeed();
+    setTimeout(() => msg.classList.remove("show"), 2000);
+  }
+  btn.disabled = false;
+});
+
+loadFeed();
+</script>
+</body>
+</html>

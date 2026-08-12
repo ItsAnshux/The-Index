@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Index — A Public Ledger of the Web</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="wrap">
+    <a href="index.html" class="brand"><span class="mark">Ⅰ</span> The Index</a>
+    <div class="navlinks">
+      <a href="index.html" class="active">Directory</a>
+      <a href="submit.html">Submit</a>
+      <a href="community.html">Whispers</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Entry No. 0001 — Est. 2026</div>
+    <h1>A public ledger of the web, kept by whoever's reading it.</h1>
+    <p class="lead">Har entry ek patron ne submit ki, Archivist ne stamp lagayi. Browse karo, ya apni khud ki add karvao.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="controls">
+    <input type="text" id="search" class="search-input" placeholder="Search the ledger…">
+  </div>
+  <div class="controls" id="categoryChips"></div>
+
+  <div class="grid" id="grid">
+    <div class="empty">Loading ledger…</div>
+  </div>
+</div>
+
+<footer>
+  Kept by patrons, stamped by the Archivist. &nbsp;·&nbsp; <a href="submit.html">Request an entry</a>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/app.js"></script>
+<script>
+let allEntries = [];
+let activeCategory = "all";
+
+async function loadEntries() {
+  const { data, error } = await supabaseClient
+    .from("websites")
+    .select("*")
+    .eq("status", "approved")
+    .order("created_at", { ascending: false });
+
+  const grid = document.getElementById("grid");
+  if (error) {
+    grid.innerHTML = `<div class="empty">Ledger load nahi ho paya. Config check karo.</div>`;
+    console.error(error);
+    return;
+  }
+  allEntries = data || [];
+  renderChips();
+  render();
+}
+
+function renderChips() {
+  const cats = ["all", ...new Set(allEntries.map(e => e.category))];
+  const el = document.getElementById("categoryChips");
+  el.innerHTML = cats.map(c =>
+    `<button class="chip ${c === activeCategory ? "active" : ""}" data-cat="${escapeHtml(c)}">${c === "all" ? "All" : escapeHtml(c)}</button>`
+  ).join("");
+  el.querySelectorAll(".chip").forEach(btn => {
+    btn.addEventListener("click", () => {
+      activeCategory = btn.dataset.cat;
+      renderChips();
+      render();
+    });
+  });
+}
+
+function render() {
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  const filtered = allEntries.filter(e => {
+    const matchCat = activeCategory === "all" || e.category === activeCategory;
+    const matchQ = !q || e.name.toLowerCase().includes(q) || (e.description || "").toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+
+  const grid = document.getElementById("grid");
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div class="empty">Koi entry nahi mili. Pehli entry aap hi ban jao — <a href="submit.html" style="color:var(--gold)">submit karo</a>.</div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(e => `
+    <div class="entry">
+      <div class="entry-head">
+        <div class="stamp">${escapeHtml(e.category[0].toUpperCase())}</div>
+        <div>
+          <div class="entry-name">${escapeHtml(e.name)}</div>
+          <div class="entry-domain">${escapeHtml(domainOf(e.url))}</div>
+        </div>
+      </div>
+      <div class="entry-desc">${escapeHtml(e.description || "")}</div>
+      <div class="entry-foot">
+        <span class="tag">${escapeHtml(e.category)}</span>
+        <a class="visit" href="${escapeHtml(e.url)}" target="_blank" rel="noopener noreferrer">Visit ↗</a>
+      </div>
+    </div>
+  `).join("");
+}
+
+document.getElementById("search").addEventListener("input", render);
+loadEntries();
+</script>
+</body>
+</html>

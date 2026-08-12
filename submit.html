@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Submit an Entry — The Index</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="wrap">
+    <a href="index.html" class="brand"><span class="mark">Ⅰ</span> The Index</a>
+    <div class="navlinks">
+      <a href="index.html">Directory</a>
+      <a href="submit.html" class="active">Submit</a>
+      <a href="community.html">Whispers</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Request an Entry</div>
+    <h1>Propose a site for the ledger.</h1>
+    <p class="lead">Har request Archivist ke paas jaati hai review ke liye. Approve hote hi directory mein dikhega.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <form class="card" id="submitForm">
+    <div class="field">
+      <label>Site name</label>
+      <input type="text" id="name" required maxlength="80" placeholder="e.g. AniHindiSubX">
+    </div>
+    <div class="field">
+      <label>URL</label>
+      <input type="url" id="url" required placeholder="https://example.com">
+    </div>
+    <div class="field">
+      <label>Category</label>
+      <input type="text" id="category" required maxlength="30" placeholder="e.g. Anime, Tools, News">
+    </div>
+    <div class="field">
+      <label>Description (one line)</label>
+      <textarea id="description" maxlength="160" placeholder="What is this site about?"></textarea>
+    </div>
+    <button class="btn" type="submit" id="submitBtn">Submit for review</button>
+    <div class="status-msg" id="statusMsg"></div>
+  </form>
+</div>
+
+<footer>
+  Kept by patrons, stamped by the Archivist. &nbsp;·&nbsp; <a href="index.html">Browse the ledger</a>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/app.js"></script>
+<script>
+document.getElementById("submitForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById("submitBtn");
+  const msg = document.getElementById("statusMsg");
+  btn.disabled = true;
+  btn.textContent = "Submitting…";
+
+  const browserId = getBrowserId();
+  const payload = {
+    name: document.getElementById("name").value.trim(),
+    url: document.getElementById("url").value.trim(),
+    category: document.getElementById("category").value.trim(),
+    description: document.getElementById("description").value.trim(),
+    status: "pending",
+    browser_id: browserId
+  };
+
+  const { error } = await supabaseClient.from("websites").insert(payload);
+
+  msg.classList.add("show");
+  if (error) {
+    msg.classList.remove("ok"); msg.classList.add("err");
+    msg.textContent = "Kuch gadbad ho gayi — dobara try karo.";
+    console.error(error);
+  } else {
+    msg.classList.remove("err"); msg.classList.add("ok");
+    msg.textContent = "Request bhej di gayi! Archivist review karega, approve hote hi ledger mein dikhega.";
+    document.getElementById("submitForm").reset();
+  }
+  btn.disabled = false;
+  btn.textContent = "Submit for review";
+});
+</script>
+</body>
+</html>
