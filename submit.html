@@ -25,7 +25,7 @@
   <div class="wrap">
     <div class="eyebrow">Request an Entry</div>
     <h1>Propose a site for the ledger.</h1>
-    <p class="lead">Har request Archivist ke paas jaati hai review ke liye. Approve hote hi directory mein dikhega.</p>
+    <p class="lead">Every request goes to the Archivist for review. Once approved, it'll show up in the directory</p>
   </div>
 </header>
 
@@ -82,11 +82,11 @@ document.getElementById("submitForm").addEventListener("submit", async (e) => {
   msg.classList.add("show");
   if (error) {
     msg.classList.remove("ok"); msg.classList.add("err");
-    msg.textContent = "Kuch gadbad ho gayi — dobara try karo.";
+    msg.textContent = "Something went wrong — please try again.";
     console.error(error);
   } else {
     msg.classList.remove("err"); msg.classList.add("ok");
-    msg.textContent = "Request bhej di gayi! Archivist review karega, approve hote hi ledger mein dikhega.";
+    msg.textContent = "Request sent! The Archivist will review it, and it'll show up in the ledger once approved.";
     document.getElementById("submitForm").reset();
   }
   btn.disabled = false;
