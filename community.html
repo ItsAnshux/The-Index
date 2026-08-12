@@ -25,13 +25,13 @@
   <div class="wrap">
     <div class="eyebrow">No sign-up required</div>
     <h1>Pin a note to the board.</h1>
-    <p class="lead">Yeh browser hi tumhari pehchaan hai — koi account nahi banana. Jo likhoge, sabko dikhega.</p>
+    <p class="lead">This browser is your identity — no account needed. Whatever you write, everyone will see.</p>
   </div>
 </header>
 
 <div class="wrap">
   <div class="composer">
-    <textarea id="whisperText" maxlength="280" placeholder="Kuch likho…"></textarea>
+    <textarea id="whisperText" maxlength="280" placeholder="Write something…"></textarea>
     <div class="composer-foot">
       <span class="char-count" id="charCount">280 left</span>
       <button class="btn" id="postBtn">Pin note</button>
@@ -73,12 +73,12 @@ async function loadFeed() {
 
   const feed = document.getElementById("feed");
   if (error) {
-    feed.innerHTML = `<div class="empty">Whispers load nahi hue. Config check karo.</div>`;
+    feed.innerHTML = `<div class="empty">Whispers didn't load. Check the config.</div>`;
     console.error(error);
     return;
   }
   if (!data || data.length === 0) {
-    feed.innerHTML = `<div class="empty">Abhi tak koi note nahi. Pehla tum likho.</div>`;
+    feed.innerHTML = `<div class="empty">No notes yet. Be the first to write one.</div>`;
     return;
   }
   feed.innerHTML = data.map(w => `
