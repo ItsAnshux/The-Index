@@ -60,7 +60,7 @@ async function loadEntries() {
 
   const grid = document.getElementById("grid");
   if (error) {
-    grid.innerHTML = `<div class="empty">Ledger load nahi ho paya. Config check karo.</div>`;
+    grid.innerHTML = `<div class="empty">Couldn't load the ledger. Check the config.</div>`;
     console.error(error);
     return;
   }
@@ -94,7 +94,7 @@ function render() {
 
   const grid = document.getElementById("grid");
   if (filtered.length === 0) {
-    grid.innerHTML = `<div class="empty">Koi entry nahi mili. Pehli entry aap hi ban jao — <a href="submit.html" style="color:var(--gold)">submit karo</a>.</div>`;
+    grid.innerHTML = `<div class="empty">No entries found. Be the first one — <a href="submit.html" style="color:var(--gold)">submit yours</a>.</div>`;
     return;
   }
 
